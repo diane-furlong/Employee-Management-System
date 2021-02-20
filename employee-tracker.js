@@ -1,6 +1,7 @@
 const mysql = require('mysql')
 const inquirer = require('inquirer')
 const cTable = require('console.table')
+const Employee = require('./employees.js')
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -46,23 +47,24 @@ const promptUser = () =>
     })
 
 const viewAll = () => {
-    connection.query('SELECT * FROM employees', (err, res) => {
+    const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title, department.name AS department, role.salary FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id INNER JOIN department ON role.department_id = department.id'
+    connection.query(query, (err, res) => {
         if(err) throw err
-            res.forEach((employees) => {
-            
-            const table = cTable.getTable([
-                {
-                    // id: res.forEach((employees) => {`${employees.id}`}),
-                    first_name: `${employees.first_name}`,
-                    last_name: `${employees.last_name}`,
-                    // title: `${role.title}`,                   
-                    // department: `${employees.id}`, //comes from department.name
-                    // salary: `${employees.id}`, //comes from role.salary
-                    // manager: `${employees.id}` //comes from employee.manager_id.first_name,last_name??
-                }
-            ])
-            console.log(table)
-        })
+       
+        // cTable.getTable(res.forEach((employees,role) => {
+        //     const table = [
+        //         {
+        //             id: `${employees.id}`,
+        //             first_name: `${employees.first_name}`,
+        //             last_name: `${employees.last_name}`,
+        //             title: `${role.title}`,                   
+        //             // department: `${employees.id}`, //comes from department.name
+        //             // salary: `${employees.id}`, //comes from role.salary
+        //             // manager: `${employees.id}` //comes from employee.manager_id.first_name,last_name??
+        //         }
+        //     ]
+          console.table(res)
+        // }))
     })
     // promptUser()
 }
