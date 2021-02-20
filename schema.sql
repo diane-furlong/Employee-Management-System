@@ -31,7 +31,7 @@ CREATE TABLE employees (
     manager_id INT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (role_id) REFERENCES role(id),
-    FOREIGN KEY (manager_id) REFERENCES role(id)
+    FOREIGN KEY (manager_id) REFERENCES employees(id)
 );
 
 SELECT * FROM employees;

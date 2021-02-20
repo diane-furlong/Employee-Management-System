@@ -25,9 +25,9 @@ const promptUser = () =>
             case 'View All Employees':
                 viewAll()
                 break
-            // case 'View All Employees By Department':
-            //     viewByDept()
-            //     break
+            case 'View All Employees By Department':
+                viewByDept()
+                break
             // case 'View All Employees By Manager':
             //     viewByMgr()
             //     break
@@ -49,29 +49,19 @@ const promptUser = () =>
 const viewAll = () => {
     const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id LEFT OUTER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id'
     connection.query(query, (err, res) => {
-        if(err) throw err
-       
-        // cTable.getTable(res.forEach((employees,role) => {
-        //     const table = [
-        //         {
-        //             id: `${employees.id}`,
-        //             first_name: `${employees.first_name}`,
-        //             last_name: `${employees.last_name}`,
-        //             title: `${role.title}`,                   
-        //             // department: `${employees.id}`, //comes from department.name
-        //             // salary: `${employees.id}`, //comes from role.salary
-        //             // manager: `${employees.id}` //comes from employee.manager_id.first_name,last_name??
-        //         }
-        //     ]
+        if (err) throw err
           console.table(res)
-        // }))
+          promptUser()
     })
-    // promptUser()
 }
 
-// const viewByDept = () =>{
-    
-// }
+const viewByDept = () =>{
+    const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id'
+    connection.query(query, (err, res) => {
+        if (err) throw err
+        console.table(res)
+    })
+}
 
 // const viewByMgr = () =>{}
 
