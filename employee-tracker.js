@@ -47,7 +47,7 @@ const promptUser = () =>
     })
 
 const viewAll = () => {
-    const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title, department.name AS department, role.salary FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id INNER JOIN department ON role.department_id = department.id'
+    const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id LEFT OUTER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id'
     connection.query(query, (err, res) => {
         if(err) throw err
        
