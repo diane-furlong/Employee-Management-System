@@ -55,11 +55,23 @@ const viewAll = () => {
     })
 }
 
-const viewByDept = () =>{
-    const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id'
-    connection.query(query, (err, res) => {
-        if (err) throw err
-        console.table(res)
+const viewByDept = () => {
+    inquirer.prompt([
+        {
+            type: 'list',
+            message: 'What department would you like to view?',
+            choices: ['construction', 'marketing'],
+            name: 'chooseDept'
+        }
+    ])
+    .then (answer => {
+        const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title, department.name FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id INNER JOIN department ON role.department_id = department.id WHERE ?'
+        connection.query(query,
+        {name: answer.chooseDept},
+        (err, res) => {
+            if (err) throw err
+            console.table(res)
+        })
     })
 }
 
