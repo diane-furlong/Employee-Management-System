@@ -122,106 +122,135 @@ const viewByMgr = () => {
 
 const addEmployee = () => {
     const titleArray = []
-    // const managerArray = []
+   
     const query = 'SELECT role.id, role.title FROM role'
     connection.query(query, (err, res) => {
         if (err) throw err
         for(i=0;i<res.length;i++){
             titleArray.push(res[i].title)
         }
-        // .then(() => {
-        //     connection.query('SELECT employees.id, concat(employees.first_name, " ",employees.last_name) AS Employee FROM employees'), function (err, data){
-        //         if (err) throw err
-        //         for(i=0;i<data.length;i++){
-        //             managerArray.push(data[i].Employee)
-        //         }
-        //         console.log(managerArray)
-                // .then(() => {
-                    //make option for employee to not have manager
-                    // managerArray.unshift('--')
-                    
-                    inquirer.prompt([
-                        {
-                            type: 'input',
-                            message: "What is the new employee's first name?",
-                            name: 'newFirstName',
-                            validate: function(input){
-                                if(input === ""){
-                                    console.log("First name is required.")
-                                    return false
-                                }
-                                else {
-                                    return true
-                                }
-                            }
-                        },
-                        {
-                            type: 'input',
-                            message: "What is the new employee's last name?",
-                            name: 'newLastName',
-                            validate: function(input){
-                                if(input === ""){
-                                    console.log("Last name is required.")
-                                    return false
-                                }
-                                else {
-                                    return true
-                                }
-                            }
-                        },
-                        {
-                            type: 'list',
-                            message: "What is the new employee's title?",
-                            choices: titleArray,
-                            name: 'newEmpTitle'
-                        },
-                        // {
-                        //     type: 'list',
-                        //     message: "Who is the new employee's manager?",
-                        //     choices: managerArray,
-                        //     name: 'newEmpMgr' 
-                        // }
-                    ])  
-                    .then ((answer) => {
-                        console.log("worked")
-                        const query = 'SELECT role.id, role.title FROM role'
-                        connection.query(query, (err, role) => {
-                            if (err) throw err
-                            
-                            //set variables for IDs
-                            let titleID = null
-                            // const managerID = null
+        const managerArray = []
+        const query2 = 'SELECT e.id, e.first_name, e.last_name, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id'
+        connection.query(query2, (err, res) => {
+            if (err) throw err
+            for(i=0;i<res.length;i++){
+                if(res[i].manager !== null){
+                   managerArray.push(res[i].manager) 
+                }
+            }
 
-                            //get the role ID of the new employee's title
-                            for(i=0;i<role.length;i++){
-                                if (answer.newEmpTitle == role[i].title){
-                                    titleID = role[i].id
+            //make option for employee to not have manager
+            managerArray.unshift('--')
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    message: "What is the new employee's first name?",
+                    name: 'newFirstName',
+                    validate: function(input){
+                        if(input === ""){
+                            console.log("First name is required.")
+                            return false
+                        }
+                        else {
+                            return true
+                        }
+                    }
+                },
+                {
+                    type: 'input',
+                    message: "What is the new employee's last name?",
+                    name: 'newLastName',
+                    validate: function(input){
+                        if(input === ""){
+                            console.log("Last name is required.")
+                            return false
+                        }
+                        else {
+                            return true
+                        }
+                    }
+                },
+                {
+                    type: 'list',
+                    message: "What is the new employee's title?",
+                    choices: titleArray,
+                    name: 'newEmpTitle'
+                },
+                {
+                    type: 'list',
+                    message: "Who is the new employee's manager?",
+                    choices: managerArray,
+                    name: 'newEmpMgr' 
+                }
+            ])  
+            .then ((answer) => {
+                console.log("worked")
+                const query = 'SELECT role.id, role.title FROM role'
+                connection.query(query, (err, role) => {
+                    if (err) throw err
+                    
+                    //set variables for ID
+                    let titleID = null
+                  
+                    //get the role ID of the new employee's title
+                    for(i=0;i<role.length;i++){
+                        if (answer.newEmpTitle == role[i].title){
+                            titleID = role[i].id
+                        }
+                    }  
+                    
+                    const query2 = 'SELECT e.id, e.first_name, e.last_name, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id'
+                    connection.query(query2, (err, manager) => {
+                        if (err) return err
+                      
+                        //set variable for ID
+                        let managerID = null
+                        let managerName = null
+                        let managerNameArray = null
+                        
+                        //look in the database for the manager's name. match the name with the manager's employee.id
+                        //if answer.newEmpMgr == manager, managerID = manager.id
+                        for (i=0;i<1;i++){
+                            if (manager[i] = answer.newEmpMgr){
+                                console.log(manager[i])
+                                managerName = manager[i]
+                                managerNameArray = managerName.split(" ")
+                            }
+                        }
+                        console.log(managerNameArray)
+                        console.log(managerNameArray[0])
+                    
+                        const query3 = 'SELECT employees.id, employees.first_name, employees.last_name, employees.manager_id FROM employees'
+                        connection.query(query3, (err, res) => {
+                            if (err) return err
+                            console.log(managerNameArray)
+        
+                            for(i=0;i<res.length;i++){
+                                if (managerNameArray[0] === res[i].first_name){
+                                    console.log("manager thing worked")
+                                    console.log(res[i].first_name)
+                                    if(managerNameArray[1] === res[i].last_name){
+                                        console.log(res[i].last_name)
+                                        console.log(res[i].id)
+                                        managerID = res[i].id
+                                    }
                                 }
                             }
                             //add the employee to db
-                            const query = 'INSERT INTO employees (first_name,last_name,role_id) VALUES (?)'
-                            const values =  [answer.newFirstName, answer.newLastName, titleID]
+                            const query = 'INSERT INTO employees (first_name,last_name,role_id,manager_id) VALUES (?)'
+                            const values =  [answer.newFirstName, answer.newLastName, titleID, managerID]
                             connection.query(query, [values], (err, res) => {
                                 if (err) throw err
                                 console.table("New employee added.")
                                 promptUser()
                             })
                         })
-
-                        // //get employee ID of the new employee's manager
-                        // for(i=0;i<role.length;i++){
-                        //     if (answer.newEmpMgr == managers[i].Employee){
-                        //         managerID = managers[i].id
-                        //     }
-                        // }
-
-                        
-                        
                     })
-                // })
-            // }
+                })
+            })
         })
-    // }
+    })
 }
 
 const removeEmployee = () => {}
