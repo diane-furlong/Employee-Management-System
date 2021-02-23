@@ -36,9 +36,9 @@ const promptUser = () =>
             case 'Add Employee':
                 addEmployee()
                 break
-            // case 'Remove Employee':
-            //     removeEmployee()
-            //     break
+            case 'Remove Employee':
+                removeEmployee()
+                break
             // case 'Update Employee Role':
             //     updateEmployeeRole()
             //     break
@@ -77,39 +77,6 @@ const viewByDept = () => {
         })
     })
 }
-
-// const viewByMgr = () =>{
-//     const managersArray = []
-
-//     connection.query((err, res) => {
-//         if (err) throw err
-//         res.forEach((employees) => {
-//             if(employees.id === employees.manager_id){
-//             managersArray.push(employees.manager_id)
-//             }
-//         })
-    
-
-//         inquirer.prompt([
-//             {
-//                 type: 'list',
-//                 message: "Which manager's reports would you like to see?",
-//                 choices: [managersArray],
-//                 name: 'chooseMgr'
-//             }
-//         ])
-//     })
-
-//     .then (answer => {
-//     const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id LEFT OUTER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id WHERE ?'
-//     connection.query(query,
-//     {name: answer.chooseMgr},
-//     (err, res) => {
-//         if (err) throw err
-//         console.table(res)
-//         })
-//     })
-// }
 
 const viewByMgr = () => {
     const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id LEFT OUTER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id ORDER BY manager'
@@ -202,7 +169,7 @@ const addEmployee = () => {
                     
                     const query2 = 'SELECT e.id, e.first_name, e.last_name, concat(m.first_name, " ", m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id'
                     connection.query(query2, (err, manager) => {
-                        if (err) return err
+                        if (err) throw err
                       
                         //set variable for ID
                         let managerID = null
@@ -223,7 +190,7 @@ const addEmployee = () => {
                     
                         const query3 = 'SELECT employees.id, employees.first_name, employees.last_name, employees.manager_id FROM employees'
                         connection.query(query3, (err, res) => {
-                            if (err) return err
+                            if (err) throw err
                             console.log(managerNameArray)
         
                             for(i=0;i<res.length;i++){
@@ -240,7 +207,7 @@ const addEmployee = () => {
                             //add the employee to db
                             const query = 'INSERT INTO employees (first_name,last_name,role_id,manager_id) VALUES (?)'
                             const values =  [answer.newFirstName, answer.newLastName, titleID, managerID]
-                            connection.query(query, [values], (err, res) => {
+                            connection.query(query, [values], (err) => {
                                 if (err) throw err
                                 console.table("New employee added.")
                                 promptUser()
@@ -253,9 +220,84 @@ const addEmployee = () => {
     })
 }
 
-const removeEmployee = () => {}
+const removeEmployee = () => {
+    const employeesArray = []
+    
+    const query = 'SELECT concat(first_name, " ", last_name) AS employee_name FROM employees'
+    connection.query(query, (err, res) => {
+        if (err) throw err
+        for(i=0;i<res.length;i++){
+            employeesArray.push(res[i].employee_name)
+            console.log(res.employee_name)
+        }
+        console.log(employeesArray)
+        inquirer.prompt([
+        {
+            type: 'list',
+            message: "Which employee would you like to remove?",
+            choices: employeesArray,
+            name: 'whichEmployee'
+        }
+        ])
+        .then ((res) => {
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    message: "Would you like to remove "+res.whichEmployee+"?",
+                    name: 'confirmRemoval'
+                }
+            ]) 
+            .then((answer) => {
+                if(answer.confirmRemoval){
+                    console.log("confirmed removal")
+                    const query2 = 'SELECT concat(first_name, " ", last_name) AS employee_name FROM employees'
+                    connection.query(query2, (err, response) => {
+                        if (err) throw err
+                        console.log("this part works")
+                        for(i=0;i<employeesArray.length;i++){                        
+                            if(res.whichEmployee == response[i].employee_name){
+                                console.log("and this part works too")
+                                console.log(response[i].employee_name)
+                                const employeeNameArray = res.whichEmployee.split(" ")
+                                console.log(employeeNameArray)
 
-const updateEmployeeRole = () => {}
+                                const query3 = 'SELECT employees.id, employees.first_name, employees.last_name FROM employees'
+                                let employeeID = null
+                                connection.query(query3, (err, res2) => {
+                                    if (err) throw err        
+                                    for(i=0;i<employeesArray.length;i++){
+                                        if (employeeNameArray[0] === res2[i].first_name){
+                                            console.log("name matched- employee ID attained")
+                                            console.log(res2[i].first_name)
+                                            if(employeeNameArray[1] === res2[i].last_name){
+                                                console.log(res2[i].last_name)
+                                                console.log(res2[i].id)
+                                                employeeID = res2[i].id
+                                            }
+                                        }
+                                    }
+                                    const query4 = 'DELETE FROM employees WHERE ?'
+                                    connection.query(query4,{ id: employeeID }, (err) => {
+                                        if (err) throw err
+                                        console.log('Employee successfully removed.')
+                                        promptUser()
+                                    })
+                                })
+                            }
+                        }
+                    })
+                }
+                else {
+                    promptUser()
+                }
+            })
+        })
+    })
+}
+
+// const updateEmployeeRole = () => {
+
+// }
 
 connection.connect((err) => {
     if (err) throw err
