@@ -388,6 +388,7 @@ addNewDepartment = () => {
         connection.query(query, {name: answer.newDeptName}, (err) => {
         if (err) throw err
             console.log("Succesfully added new department.")
+            promptUser()
         })
     })
 }
