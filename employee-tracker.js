@@ -18,7 +18,7 @@ const promptUser = () =>
         {
             type: 'list',
             message: 'What would you like to do?',
-            choices: ['View All Employees', 'View All Employees By Department', 'View All Employees By Manager', 'Add Employee', 'Remove Employee', 'Update Employee Role', 'Update Employee Manager', 'Exit'],
+            choices: ['View All Employees', 'View All Employees By Department', 'View All Employees By Manager', 'Add Employee', 'Remove Employee', 'Update Employee Role', 'Add New Department', 'Add New Role', 'Exit'],
             name: 'initialPrompt'
         }
     ])
@@ -39,9 +39,15 @@ const promptUser = () =>
             case 'Remove Employee':
                 removeEmployee()
                 break
-            // case 'Update Employee Role':
-            //     updateEmployeeRole()
-            //     break
+            case 'Update Employee Role':
+                updateEmployeeRole()
+                break
+            case 'Add New Department':
+                addNewDepartment()
+                break
+            case 'Add New Role':
+                addNewRole()
+                break
             case 'Exit':
                 connection.end()
                 break
@@ -295,8 +301,167 @@ const removeEmployee = () => {
     })
 }
 
-// const updateEmployeeRole = () => {
+const updateEmployeeRole = () => {
+    const employeesArray = []
+    const query = 'SELECT concat(first_name, " ", last_name) AS employee_name FROM employees'
+    connection.query(query, (err, res) => {
+        if (err) throw err
+        for(i=0;i<res.length;i++){
+            employeesArray.push(res[i].employee_name)
+        }
+        console.log(employeesArray)
+        const roleArray = []
+        const query2 = 'SELECT role.id, role.title FROM role'
+        connection.query(query2, (err, res2) => {
+            if (err) throw err
+            for(i=0;i<res2.length;i++){
+                roleArray.push(res2[i].title)
+            }
+            inquirer.prompt([
+            {
+                type: 'list',
+                message: "Which employee's role would you like to change?",
+                choices: employeesArray,
+                name: 'whichEmployee'
+            }
+            ])
+            .then ((res) => {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        message: "What is "+res.whichEmployee+"'s new role?",
+                        choices: roleArray,
+                        name: 'whichRole'
+                    }
+                ]) 
+                .then((answer) => {
+                    console.log("worked")
+                    const query3 = 'SELECT role.id, role.title FROM role'
+                    connection.query(query3, (err, role) => {
+                        if (err) throw err
+                        
+                        //set variables for ID
+                        let roleID = null
+                    
+                        //get the role ID of the employee's new role
+                        for(i=0;i<role.length;i++){
+                            if (answer.whichRole == role[i].title){
+                                roleID = role[i].id
+                                console.log(roleID)
+                            }
+                        } 
+                        const query4 = 'SELECT concat(first_name, " ", last_name) AS employee_name FROM employees'
+                        connection.query(query4, (err, response) => {
+                            if (err) throw err
+                            for(i=0;i<employeesArray.length;i++){                        
+                                if(res.whichEmployee == response[i].employee_name){
+                                    console.log("and this part works too")
+                                    console.log(response[i].employee_name)
+                                    const employeeNameArray = res.whichEmployee.split(" ")
+                                    console.log(employeeNameArray)
+                                
+                                    const query5 = 'SELECT employees.id, employees.first_name, employees.last_name FROM employees'
+                                    let employeeID = null
+                                    connection.query(query5, (err, res2) => {
+                                        if (err) throw err        
+                                        for(i=0;i<employeesArray.length;i++){
+                                            if (employeeNameArray[0] === res2[i].first_name){
+                                                console.log("name matched- employee ID attained")
+                                                console.log(res2[i].first_name)
+                                                if(employeeNameArray[1] === res2[i].last_name){
+                                                    console.log(res2[i].last_name)
+                                                    console.log(res2[i].id)
+                                                    employeeID = res2[i].id
+                                                
+                                                    const query6 = 'UPDATE employees SET ? WHERE?'
+                                                    connection.query(query6, [
+                                                    {role_id: roleID,},
+                                                    {id: employeeID}
+                                                    ], (err) => {
+                                                        if (err) throw err
+                                                        console.log("Employee role updated.")
+                                                        promptUser()
+                                                    })
+                                                }
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    })
+                })
+            })
+        })
+    })
+}
 
+addNewDepartment = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: "Enter the new department name.",
+            name: 'newDeptName'
+        }
+    ])
+    .then ((answer) => {
+        const query = 'INSERT INTO department SET ?'
+        connection.query(query, {name: answer.newDeptName}, (err) => {
+        if (err) throw err
+            console.log("Succesfully added new department.")
+        })
+    })
+}
+
+// addNewRole= () => {
+//     const query = 'SELECT name FROM department'
+//     connection.query(query,(err, response) => {
+//         if (err) throw err
+//         const deptNameArray = response
+//         inquirer.prompt([
+//             {
+//                 type: 'input',
+//                 message: "Enter the new role title.",
+//                 name: 'newRoleTitle'
+//             },
+//             {
+//                 type: 'input',
+//                 message: "Enter the new role's salary.",
+//                 name: 'newRoleSalary'
+//             },
+//             {
+//                 type: 'list',
+//                 message: "Choose the new role's department.",
+//                 choices: deptNameArray,
+//                 name: 'newRoleDepartment'
+//             }
+//         ]) 
+//         .then ((answer) => {
+//             let departmentID = null
+//             const query2 = 'SELECT * FROM role INNER JOIN department ON role.department_id = department.id'
+//             connection.query(query2, (err,res) => {
+//                 if (err) throw err
+//                 for(i=0;i<deptNameArray.length;i++){
+//                    if(answer.newRoleDepartment == res[i].name){
+//                        console.log(res[i].name)
+//                        const query3 = 'SELECT * FROM department'
+//                        connection.query(query3, (err, response2) => {
+//                            if (err) throw err
+//                            console.log()
+//                        })
+//                         // const query3 = 'INSERT INTO role SET ?'
+//                         // connection.query(query3, {title: answer.newRoleTitle, salary: answer.newRoleSalary, department_id: departmentID}, (err) => {
+//                         //     if (err) throw err
+//                         //     console.log("Succesfully added new role.")
+//                         // })
+//                    }
+//                 }
+                
+               
+//             })
+            
+//         })
+//     })
 // }
 
 connection.connect((err) => {
