@@ -1,9 +1,5 @@
 const mysql = require('mysql')
 const inquirer = require('inquirer')
-const app = require('express')()
-const cTable = require('console.table')
-const Employee = require('./employees.js')
-const { title } = require('process')
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -64,22 +60,26 @@ const viewAll = () => {
 }
 
 const viewByDept = () => {
-    inquirer.prompt([
+    const query = 'SELECT name FROM department'
+    connection.query(query,(err,res) => {
+        if (err) throw err
+        inquirer.prompt([
         {
             type: 'list',
             message: 'What department would you like to view?',
-            choices: ['construction', 'marketing'],
+            choices: res,
             name: 'chooseDept'
         }
-    ])
-    .then (answer => {
-        const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title, department.name FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id INNER JOIN department ON role.department_id = department.id WHERE ?'
-        connection.query(query,
-        {name: answer.chooseDept},
-        (err, res) => {
-            if (err) throw err
-            console.table(res)
-            promptUser()
+        ])
+        .then (answer => {
+            const query = 'SELECT employees.id, employees.first_name, employees.last_name, role.title, department.name FROM employees LEFT OUTER JOIN role ON employees.role_id = role.id INNER JOIN department ON role.department_id = department.id WHERE ?'
+            connection.query(query,
+            {name: answer.chooseDept},
+            (err, res) => {
+                if (err) throw err
+                console.table(res)
+                promptUser()
+            })
         })
     })
 }
@@ -158,7 +158,6 @@ const addEmployee = () => {
                 }
             ])  
             .then ((answer) => {
-                console.log("worked")
                 const query = 'SELECT role.id, role.title FROM role'
                 connection.query(query, (err, role) => {
                     if (err) throw err
@@ -186,26 +185,18 @@ const addEmployee = () => {
                         //if answer.newEmpMgr == manager, managerID = manager.id
                         for (i=0;i<1;i++){
                             if (manager[i] = answer.newEmpMgr){
-                                console.log(manager[i])
                                 managerName = manager[i]
                                 managerNameArray = managerName.split(" ")
                             }
                         }
-                        console.log(managerNameArray)
-                        console.log(managerNameArray[0])
                     
                         const query3 = 'SELECT employees.id, employees.first_name, employees.last_name, employees.manager_id FROM employees'
                         connection.query(query3, (err, res) => {
                             if (err) throw err
-                            console.log(managerNameArray)
         
                             for(i=0;i<res.length;i++){
                                 if (managerNameArray[0] === res[i].first_name){
-                                    console.log("manager thing worked")
-                                    console.log(res[i].first_name)
                                     if(managerNameArray[1] === res[i].last_name){
-                                        console.log(res[i].last_name)
-                                        console.log(res[i].id)
                                         managerID = res[i].id
                                     }
                                 }
@@ -234,9 +225,7 @@ const removeEmployee = () => {
         if (err) throw err
         for(i=0;i<res.length;i++){
             employeesArray.push(res[i].employee_name)
-            console.log(res.employee_name)
         }
-        console.log(employeesArray)
         inquirer.prompt([
         {
             type: 'list',
@@ -255,42 +244,33 @@ const removeEmployee = () => {
             ]) 
             .then((answer) => {
                 if(answer.confirmRemoval){
-                    console.log("confirmed removal")
                     const query2 = 'SELECT concat(first_name, " ", last_name) AS employee_name FROM employees'
+                    let employeeNameArray = []
                     connection.query(query2, (err, response) => {
                         if (err) throw err
-                        console.log("this part works")
                         for(i=0;i<employeesArray.length;i++){                        
                             if(res.whichEmployee == response[i].employee_name){
-                                console.log("and this part works too")
-                                console.log(response[i].employee_name)
-                                const employeeNameArray = res.whichEmployee.split(" ")
-                                console.log(employeeNameArray)
-
-                                const query3 = 'SELECT employees.id, employees.first_name, employees.last_name FROM employees'
-                                let employeeID = null
-                                connection.query(query3, (err, res2) => {
-                                    if (err) throw err        
-                                    for(i=0;i<employeesArray.length;i++){
-                                        if (employeeNameArray[0] === res2[i].first_name){
-                                            console.log("name matched- employee ID attained")
-                                            console.log(res2[i].first_name)
-                                            if(employeeNameArray[1] === res2[i].last_name){
-                                                console.log(res2[i].last_name)
-                                                console.log(res2[i].id)
-                                                employeeID = res2[i].id
-                                            }
-                                        }
-                                    }
-                                    const query4 = 'DELETE FROM employees WHERE ?'
-                                    connection.query(query4,{ id: employeeID }, (err) => {
-                                        if (err) throw err
-                                        console.log('Employee successfully removed.')
-                                        promptUser()
-                                    })
-                                })
+                                employeeNameArray = res.whichEmployee.split(" ")
                             }
                         }
+                        const query3 = 'SELECT employees.id, employees.first_name, employees.last_name FROM employees'
+                        let employeeID = null
+                        connection.query(query3, (err, res2) => {
+                            if (err) throw err        
+                            for(i=0;i<employeesArray.length;i++){
+                                if (employeeNameArray[0] === res2[i].first_name){
+                                    if(employeeNameArray[1] === res2[i].last_name){
+                                        employeeID = res2[i].id
+                                    }
+                                }
+                            }
+                            const query4 = 'DELETE FROM employees WHERE ?'
+                            connection.query(query4,{ id: employeeID }, (err) => {
+                                if (err) throw err
+                                console.log('Employee successfully removed.')
+                                promptUser()
+                            })
+                        })
                     })
                 }
                 else {
@@ -309,7 +289,6 @@ const updateEmployeeRole = () => {
         for(i=0;i<res.length;i++){
             employeesArray.push(res[i].employee_name)
         }
-        console.log(employeesArray)
         const roleArray = []
         const query2 = 'SELECT role.id, role.title FROM role'
         connection.query(query2, (err, res2) => {
@@ -335,7 +314,6 @@ const updateEmployeeRole = () => {
                     }
                 ]) 
                 .then((answer) => {
-                    console.log("worked")
                     const query3 = 'SELECT role.id, role.title FROM role'
                     connection.query(query3, (err, role) => {
                         if (err) throw err
@@ -347,7 +325,6 @@ const updateEmployeeRole = () => {
                         for(i=0;i<role.length;i++){
                             if (answer.whichRole == role[i].title){
                                 roleID = role[i].id
-                                console.log(roleID)
                             }
                         } 
                         const query4 = 'SELECT concat(first_name, " ", last_name) AS employee_name FROM employees'
@@ -355,10 +332,7 @@ const updateEmployeeRole = () => {
                             if (err) throw err
                             for(i=0;i<employeesArray.length;i++){                        
                                 if(res.whichEmployee == response[i].employee_name){
-                                    console.log("and this part works too")
-                                    console.log(response[i].employee_name)
                                     const employeeNameArray = res.whichEmployee.split(" ")
-                                    console.log(employeeNameArray)
                                 
                                     const query5 = 'SELECT employees.id, employees.first_name, employees.last_name FROM employees'
                                     let employeeID = null
@@ -366,11 +340,7 @@ const updateEmployeeRole = () => {
                                         if (err) throw err        
                                         for(i=0;i<employeesArray.length;i++){
                                             if (employeeNameArray[0] === res2[i].first_name){
-                                                console.log("name matched- employee ID attained")
-                                                console.log(res2[i].first_name)
                                                 if(employeeNameArray[1] === res2[i].last_name){
-                                                    console.log(res2[i].last_name)
-                                                    console.log(res2[i].id)
                                                     employeeID = res2[i].id
                                                 
                                                     const query6 = 'UPDATE employees SET ? WHERE?'
@@ -401,7 +371,16 @@ addNewDepartment = () => {
         {
             type: 'input',
             message: "Enter the new department name.",
-            name: 'newDeptName'
+            name: 'newDeptName',
+            validate: function(input){
+                if(input === ""){
+                    console.log("Department name is required.")
+                    return false
+                }
+                else {
+                    return true
+                }
+            }
         }
     ])
     .then ((answer) => {
@@ -422,12 +401,30 @@ addNewRole= () => {
             {
                 type: 'input',
                 message: "Enter the new role title.",
-                name: 'newRoleTitle'
+                name: 'newRoleTitle',
+                validate: function(input){
+                    if(input === ""){
+                        console.log("Role title is required.")
+                        return false
+                    }
+                    else {
+                        return true
+                    }
+                }
             },
             {
                 type: 'input',
                 message: "Enter the new role's salary (must be decimal, i.e., ####.##).",
-                name: 'newRoleSalary'
+                name: 'newRoleSalary',
+                validate: function(input){
+                    if(input === ""){
+                        console.log("Salary is required.")
+                        return false
+                    }
+                    else {
+                        return true
+                    }
+                }
             },
             {
                 type: 'list',
@@ -437,9 +434,6 @@ addNewRole= () => {
             }
         ]) 
         .then ((answer) => {
-            let deptName= answer.newRoleDepartment
-          
-            console.log(deptName)
                 
             const query2 = 'SELECT * FROM department'
             const departmentID = []

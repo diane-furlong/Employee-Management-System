@@ -1,17 +1,23 @@
 INSERT INTO department (name)
-VALUES ("construction"),("marketing");
+VALUES ("Scientific"),("Engineering"),("Marketing");
 
-INSERT INTO role (title, department_id)
-VALUES ("builder",1), ("foreman",1),("marketing specialist",2),("marketing manager",2);
+INSERT INTO role (title, salary, department_id)
+VALUES ("Scientist", 50000.00 ,1), ("Scientific Manager", 100000.00,1), ("Engineer",60000.00,2),("Engineering Manager", 120000.00,2),("Marketing Specialist", 55000.00,3),("Marketing Manager", 110000.00,3);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES ("Bob", "Hope",2, null);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Karl","Jones",2, null);
+VALUES ("Rosemary","Jones",4, null);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES ("Stan","Connely",1,1);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Pete","Budger",3,2);
+VALUES ("Desiree","Budger",3,2);
+
+INSERT INTO employees (first_name, last_name, role_id, manager_id)
+VALUES ("Karl","Biswah",5,null);
+
+INSERT INTO employees (first_name, last_name, role_id, manager_id)
+VALUES ("Pete","Budger",4,5);
