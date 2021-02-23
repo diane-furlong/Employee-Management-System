@@ -413,56 +413,54 @@ addNewDepartment = () => {
     })
 }
 
-// addNewRole= () => {
-//     const query = 'SELECT name FROM department'
-//     connection.query(query,(err, response) => {
-//         if (err) throw err
-//         const deptNameArray = response
-//         inquirer.prompt([
-//             {
-//                 type: 'input',
-//                 message: "Enter the new role title.",
-//                 name: 'newRoleTitle'
-//             },
-//             {
-//                 type: 'input',
-//                 message: "Enter the new role's salary.",
-//                 name: 'newRoleSalary'
-//             },
-//             {
-//                 type: 'list',
-//                 message: "Choose the new role's department.",
-//                 choices: deptNameArray,
-//                 name: 'newRoleDepartment'
-//             }
-//         ]) 
-//         .then ((answer) => {
-//             let departmentID = null
-//             const query2 = 'SELECT * FROM role INNER JOIN department ON role.department_id = department.id'
-//             connection.query(query2, (err,res) => {
-//                 if (err) throw err
-//                 for(i=0;i<deptNameArray.length;i++){
-//                    if(answer.newRoleDepartment == res[i].name){
-//                        console.log(res[i].name)
-//                        const query3 = 'SELECT * FROM department'
-//                        connection.query(query3, (err, response2) => {
-//                            if (err) throw err
-//                            console.log()
-//                        })
-//                         // const query3 = 'INSERT INTO role SET ?'
-//                         // connection.query(query3, {title: answer.newRoleTitle, salary: answer.newRoleSalary, department_id: departmentID}, (err) => {
-//                         //     if (err) throw err
-//                         //     console.log("Succesfully added new role.")
-//                         // })
-//                    }
-//                 }
+addNewRole= () => {
+    const query = 'SELECT name FROM department'
+    connection.query(query,(err, response) => {
+        if (err) throw err
+        const deptNameArray = response
+        inquirer.prompt([
+            {
+                type: 'input',
+                message: "Enter the new role title.",
+                name: 'newRoleTitle'
+            },
+            {
+                type: 'input',
+                message: "Enter the new role's salary (must be decimal, i.e., ####.##).",
+                name: 'newRoleSalary'
+            },
+            {
+                type: 'list',
+                message: "Choose the new role's department.",
+                choices: deptNameArray,
+                name: 'newRoleDepartment'
+            }
+        ]) 
+        .then ((answer) => {
+            let deptName= answer.newRoleDepartment
+          
+            console.log(deptName)
                 
-               
-//             })
-            
-//         })
-//     })
-// }
+            const query2 = 'SELECT * FROM department'
+            const departmentID = []
+            connection.query(query2, (err, response) => {
+                if (err) throw err
+                for(i=0;i<deptNameArray.length;i++){
+                    if(answer.newRoleDepartment == response[i].name){
+                        departmentID.push(response[i].id)
+                    }
+                }
+                    
+                const query3 = 'INSERT INTO role SET ?'
+                connection.query(query3, {title: answer.newRoleTitle, salary: answer.newRoleSalary, department_id: departmentID}, (err) => {
+                    if (err) throw err
+                    console.log("Succesfully added new role.")
+                    promptUser()
+                })
+            })  
+        })
+    })
+}
 
 connection.connect((err) => {
     if (err) throw err
