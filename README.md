@@ -25,7 +25,7 @@ This application requires node.js and the npm Inquirer installed from the termin
 ## Usage
     
 Download the code and open using your preferred integrated development environment with node.js installed. Use the command line to run node on the employee-tracker.js document and follow the prompts to interact with the database. Here is a demo of the application in action:
-![application demo](assets/EMS-demo.gif)
+![application demo](assets/EMS_demo.gif)
     
 ## Contributions
     
